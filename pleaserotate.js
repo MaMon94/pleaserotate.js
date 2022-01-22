@@ -1,3 +1,5 @@
+/*pleaserotate.js by Rob Scanlon, MIT license. http://github.com/arscan/pleaserotate.js*/
+
 (function(){
     var PleaseRotate = {},
         currentOrientation = null,
@@ -92,6 +94,7 @@
             subMessage = document.createElement("small");
 
         backdrop.setAttribute("id", "pleaserotate-backdrop");
+        backdrop.style["display"] = "none";
         container.setAttribute("id", "pleaserotate-container");
         message.setAttribute("id", "pleaserotate-message");
 
@@ -153,26 +156,27 @@
     }
 
     function orientationChanged(){
-        var triggerOn = currentOrientation && !options.forcePortrait || !currentOrientation && options.forcePortrait,
-            propogate;
-            
-        if(triggerOn){
-            propogate = options.onShow();
-            setBodyClass("showing");
-        } else {
-            propogate = options.onHide();
-            setBodyClass("hiding");
+        if(PleaseRotate.active){
+            var triggerOn = currentOrientation && !options.forcePortrait || !currentOrientation && options.forcePortrait,
+                propogate;
+                
+            if(triggerOn){
+                propogate = options.onShow();
+                setBodyClass("showing");
+            } else {
+                propogate = options.onHide();
+                setBodyClass("hiding");
+            }
+
+
+            if(propogate !== undefined && !propogate){
+                return;
+            }
+
+            PleaseRotate.Showing = triggerOn;
+
+            setVisibility(triggerOn);
         }
-
-
-        if(propogate !== undefined && !propogate){
-            return;
-        }
-
-        PleaseRotate.Showing = triggerOn;
-
-        setVisibility(triggerOn);
-
     }
 
     function isPortrait(){
@@ -230,6 +234,17 @@
         window.removeEventListener('resize', onWindowResize, false);
     }
 
+    PleaseRotate.activate = function(){
+        PleaseRotate.active = true;
+        checkOrientationChange();
+        orientationChanged();
+    }
+
+    PleaseRotate.deactivate = function(){
+        PleaseRotate.active = false;
+        document.getElementById("pleaserotate-backdrop").style["display"] = "none";
+    }
+
     PleaseRotate.onShow = function(fn){
         options.onShow = fn;
 
@@ -252,6 +267,7 @@
         }
     };
 
+    PleaseRotate.active = false;
     PleaseRotate.Showing = false;
 
     /* plumbing to support AMD, CommonJS, or Globals */
